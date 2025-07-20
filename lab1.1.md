@@ -87,11 +87,7 @@ kubectl expose deployment nginx --type=NodePort --port=80
 kubectl get services
 ```
 
-Tu peux aussi ouvrir le **dashboard Kubernetes** avec :
 
-```
-minikube dashboard
-```
 
 ---
 
