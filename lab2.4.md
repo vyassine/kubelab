@@ -1,4 +1,4 @@
-# Lab 2.2 : Le Deployment et les Init Containers 
+# Lab 2.4 : Le Deployment et les Init Containers 
 Objectif : Déployer une application de manière résiliente, la mettre à l'échelle, et utiliser un Init Container pour une tâche de préparation simple (comme une vérification ou une temporisation).
 
 Contexte : Nous allons déployer une application web Nginx. Avant que le serveur web ne démarre, un Init Container va simuler une tâche de préparation (par exemple, attendre qu'un service externe soit prêt). Nous allons simuler cela avec une simple temporisation et un message dans les logs.
@@ -10,7 +10,7 @@ Créez un fichier nommé lab2.2-deployment-corrige.yaml. Notez qu'il n'y a aucun
 
 ```YAML
 
-# lab2.2-deployment-corrige.yaml
+# lab2.4-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
