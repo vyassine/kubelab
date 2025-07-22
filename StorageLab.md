@@ -400,7 +400,7 @@ spec:
 ```
 ⸻
 
-🚀 Déploiement des ressources
+Déploiement des ressources
 ```
 kubectl apply -f nfs-server.yaml
 kubectl apply -f nfs-pv-pvc.yaml
@@ -424,4 +424,127 @@ Nettoyage
 kubectl delete namespace nfs-lab
 
 ```
+Parfait. Voici le Lab 7 — CSI (Container Storage Interface) avec provisionnement dynamique.
+
+⸻
+
+# Lab 7 — Utiliser une StorageClass CSI dynamique
+
+## Objectif pédagogique
+
+Comprendre comment Kubernetes crée automatiquement un volume via un CSI driver à partir d’une StorageClass, sans avoir besoin de déclarer le PV manuellement.
+
+⸻
+
+💡 Prérequis
+	•	Un cluster Kubernetes avec un CSI installé et activé (ex. : hostPath, local-path, ou CSI GCE, AWS EBS…).
+	•	Pour Minikube, activez un CSI local de test :
+```
+minikube addons enable storage-provisioner
+
+```
+⸻
+
+## Étape 1 : Créer un namespace
+
+```
+kubectl create namespace csi-lab
+```
+
+⸻
+
+## Étape 2 : Vérifier la StorageClass active
+
+Liste les StorageClass disponibles :
+```
+kubectl get sc
+```
+Note le nom de la StorageClass marquée (default) (souvent standard ou local-path).
+
+⸻
+
+## Étape 3 : Créer une PVC (volumeClaim) avec provisionnement dynamique
+
+Fichier pvc-dynamic.yaml :
+```YAML
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamic-pvc
+  namespace: csi-lab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard # ou local-path selon ton cluster
+```
+Kubernetes créera automatiquement un PV via la StorageClass CSI désignée.
+
+⸻
+
+## Étape 4 : Créer un pod qui monte ce volume
+
+Fichier pod-csi.yaml :
+```YAML
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-using-csi
+  namespace: csi-lab
+spec:
+  containers:
+    - name: busybox
+      image: busybox
+      command: ["/bin/sh", "-c"]
+      args: ["echo Bonjour > /mnt/data/bonjour.txt && sleep 3600"]
+      volumeMounts:
+        - name: data-vol
+          mountPath: /mnt/data
+  volumes:
+    - name: data-vol
+      persistentVolumeClaim:
+        claimName: dynamic-pvc
+
+```YAML
+⸻
+
+Déploiement
+```
+kubectl apply -f pvc-dynamic.yaml
+kubectl apply -f pod-csi.yaml
+```
+
+⸻
+
+Vérification
+
+Vérifier que le PVC est Bound :
+```
+kubectl get pvc -n csi-lab
+```
+Résultat attendu :
+
+NAME          STATUS   VOLUME                                     STORAGECLASS   AGE
+dynamic-pvc   Bound    pvc-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx   standard       1m
+
+Inspecter le contenu dans le pod :
+```
+kubectl exec -it app-using-csi -n csi-lab -- cat /mnt/data/bonjour.txt
+```
+Tu devrais voir :
+
+Bonjour
+
+
+⸻
+
+Nettoyage
+```
+kubectl delete namespace csi-lab
+```
+
+⸻
+
 
