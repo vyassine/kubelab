@@ -55,7 +55,7 @@ Créez le fichier result-app.YAML :
 
 ```YAML
 
-# result-app.```YAML
+# result-app.YAML
 apiVersion: apps/v1
 kind: Deployment
 metadata:
