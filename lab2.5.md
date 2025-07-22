@@ -192,6 +192,7 @@ Pour que le LoadBalancer fonctionne sur Minikube, ouvrez un nouveau terminal et 
 ```bash
 
 minikube tunnel
+```
 Inspectez le Service :
 Retournez à votre premier terminal et inspectez le service. Cela peut prendre une minute pour que l'IP externe soit assignée.
 
