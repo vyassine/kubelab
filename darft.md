@@ -247,3 +247,181 @@ kubectl get pv
 kubectl exec pod-dynamic-pv -- cat /data/info.txt
 ```
 ✅ Attendu : PV créé automatiquement et données présentes.
+
+Parfait ! Voici le Lab 6 — Utilisation d’un volume partagé via NFS.
+
+⸻
+
+# Lab 6 — NFS : Volume partagé entre plusieurs pods
+
+ ## Objectif pédagogique
+
+Mettre en place un serveur NFS dans le cluster et monter le même volume NFS dans plusieurs pods pour partager des fichiers entre eux.
+
+⸻
+
+## Étape 1 : Créer un namespace pour le lab
+
+kubectl create namespace nfs-lab
+
+
+⸻
+
+## Étape 2 : Déployer un serveur NFS dans le cluster
+
+Fichier nfs-server.yaml :
+```YAML
+apiVersion: v1
+kind: Service
+metadata:
+  name: nfs-service
+  namespace: nfs-lab
+spec:
+  selector:
+    app: nfs-server
+  ports:
+    - protocol: TCP
+      port: 2049
+      targetPort: 2049
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  namespace: nfs-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+        - name: nfs-server
+          image: itsthenetwork/nfs-server-alpine:12
+          ports:
+            - name: nfs
+              containerPort: 2049
+          securityContext:
+            privileged: true
+          args:
+            - /exports
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /exports
+      volumes:
+        - name: nfs-volume
+          emptyDir: {}
+
+```
+⸻
+
+## Étape 3 : Créer le PersistentVolume + PersistentVolumeClaim
+
+Fichier nfs-pv-pvc.yaml :
+```YAML
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: nfs-service.nfs-lab.svc.cluster.local
+    path: /
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+  namespace: nfs-lab
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Mi
+  volumeName: nfs-pv
+
+```
+⸻
+
+## Étape 4 : Déployer des pods partageant le volume
+
+Fichier shared-pods.yaml :
+```YAML
+apiVersion: v1
+kind: Pod
+metadata:
+  name: writer
+  namespace: nfs-lab
+spec:
+  containers:
+    - name: writer
+      image: busybox
+      command: ["/bin/sh", "-c"]
+      args:
+        - while true; do date >> /mnt/shared/date.log; sleep 2; done
+      volumeMounts:
+        - name: shared-vol
+          mountPath: /mnt/shared
+  volumes:
+    - name: shared-vol
+      persistentVolumeClaim:
+        claimName: nfs-pvc
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: reader
+  namespace: nfs-lab
+spec:
+  containers:
+    - name: reader
+      image: busybox
+      command: ["/bin/sh", "-c"]
+      args:
+        - tail -f /mnt/shared/date.log
+      volumeMounts:
+        - name: shared-vol
+          mountPath: /mnt/shared
+  volumes:
+    - name: shared-vol
+      persistentVolumeClaim:
+        claimName: nfs-pvc
+
+```YAML
+⸻
+
+🚀 Déploiement des ressources
+```
+kubectl apply -f nfs-server.yaml
+kubectl apply -f nfs-pv-pvc.yaml
+kubectl apply -f shared-pods.yaml
+```
+
+⸻
+
+🔍 Vérification
+	•	Connecte-toi au pod reader :
+```
+kubectl exec -it reader -n nfs-lab -- sh
+```
+
+	•	Tu dois voir les dates s’écrire en direct par le pod writer dans /mnt/shared/date.log.
+
+⸻
+
+🧹 Nettoyage
+```
+kubectl delete namespace nfs-lab
+
+```
+
