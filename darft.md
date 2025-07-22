@@ -397,7 +397,7 @@ spec:
       persistentVolumeClaim:
         claimName: nfs-pvc
 
-```YAML
+```
 ⸻
 
 🚀 Déploiement des ressources
@@ -409,7 +409,7 @@ kubectl apply -f shared-pods.yaml
 
 ⸻
 
-🔍 Vérification
+ Vérification
 	•	Connecte-toi au pod reader :
 ```
 kubectl exec -it reader -n nfs-lab -- sh
@@ -419,7 +419,7 @@ kubectl exec -it reader -n nfs-lab -- sh
 
 ⸻
 
-🧹 Nettoyage
+Nettoyage
 ```
 kubectl delete namespace nfs-lab
 
