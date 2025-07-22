@@ -556,17 +556,17 @@ Comprendre comment utiliser le mécanisme VolumeSnapshot pour créer une sauvega
 
 ⸻
 ## Prérequis
-	1.	CSI avec support des snapshots doit être activé.
-	•	Minikube le supporte via le provisionneur hostpath-csi :
-
+1.	CSI avec support des snapshots doit être activé.
+•	Minikube le supporte via le provisionneur hostpath-csi :
+```
 minikube addons enable csi-hostpath-driver
 minikube addons enable volumesnapshots
+```
 
-
-	2.	Installer les CRD nécessaires (si non déjà présents) :
-
+2.	Installer les CRD nécessaires (si non déjà présents) :
+```
 kubectl get volumesnapshotclasses.snapshot.storage.k8s.io
-
+```
 Si la commande échoue, tu peux les créer via :
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
@@ -580,7 +580,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snaps
 ## Étape 1 : Créer le PVC avec des données
 
 Fichier pvc-source.yaml :
-
+```YAML
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -593,9 +593,9 @@ spec:
   resources:
     requests:
       storage: 1Gi
-
+```
 Fichier writer-pod.yaml :
-
+```YAML
 apiVersion: v1
 kind: Pod
 metadata:
@@ -614,13 +614,13 @@ spec:
     - name: data
       persistentVolumeClaim:
         claimName: source-pvc
-
+```
 Déploie le tout :
-
+```
 kubectl create namespace snapshot-lab
 kubectl apply -f pvc-source.yaml -n snapshot-lab
 kubectl apply -f writer-pod.yaml -n snapshot-lab
-
+```
 
 ⸻
 
