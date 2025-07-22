@@ -424,8 +424,6 @@ Nettoyage
 kubectl delete namespace nfs-lab
 
 ```
-Parfait. Voici le Lab 7 — CSI (Container Storage Interface) avec provisionnement dynamique.
-
 ⸻
 
 # Lab 7 — Utiliser une StorageClass CSI dynamique
@@ -507,7 +505,7 @@ spec:
       persistentVolumeClaim:
         claimName: dynamic-pvc
 
-```YAML
+```
 ⸻
 
 Déploiement
