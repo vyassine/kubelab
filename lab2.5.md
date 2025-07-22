@@ -3,7 +3,7 @@ Avant de créer des services, nous allons déployer une application web simple (
 
 ## Créez le fichier nginx-deployment.yaml :
 
-YAML
+```YAML
 
 apiVersion: apps/v1
 kind: Deployment
@@ -24,16 +24,19 @@ spec:
         image: nginx:1.21
         ports:
         - containerPort: 80
+```
 Appliquez le manifeste pour créer le Deployment :
 
-Bash
+```bash
 
 kubectl apply -f nginx-deployment.yaml
+```
 Vérifiez que les Pods sont en cours d'exécution :
 
-Bash
+```bash
 
 kubectl get pods -l app=webapp
+```
 Vous devriez voir 3 pods avec le statut Running. Ces pods ont des adresses IP internes qui peuvent changer à tout moment, ce qui illustre le problème que les Services viennent résoudre.   
 
 ## Lab 1 : Le Service ClusterIP - Communication Interne
@@ -41,7 +44,7 @@ Objectif : Comprendre comment les services communiquent à l'intérieur du clust
 
 Créez le fichier webapp-clusterip-service.yaml :
 
-YAML
+```YAML
 
 apiVersion: v1
 kind: Service
@@ -55,16 +58,19 @@ spec:
     - protocol: TCP
       port: 80       # Le port sur lequel le service est exposé
       targetPort: 80 # Le port sur lequel les conteneurs des pods écoutent
+```
 Appliquez le manifeste pour créer le Service :
 
-Bash
+```bash
 
 kubectl apply -f webapp-clusterip-service.yaml
+```
 Inspectez le Service :
 
-Bash
+```bash
 
 kubectl get service webapp-internal-service
+```
 Résultat attendu :
 
 NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
@@ -74,14 +80,17 @@ Notez le CLUSTER-IP. C'est l'adresse IP virtuelle et stable de votre service.  
 Vérification de la communication interne :
 Nous ne pouvons pas accéder à cette IP depuis l'extérieur. Pour tester, nous allons lancer un pod temporaire et utiliser curl depuis l'intérieur du cluster.
 
-Bash
+```bash
 
 # Lance un pod de test et exécute une commande shell à l'intérieur
 kubectl run -it --rm --image=busybox test-pod -- sh
 
+
 # Une fois dans le shell du pod, utilisez le nom DNS du service pour le contacter
 # Le nom DNS est au format <nom-du-service>.<namespace>.svc.cluster.local
 wget -q -O - http://webapp-internal-service
+
+```
 Résultat et Nettoyage :
 Vous devriez voir la page d'accueil HTML de Nginx. Cela prouve que votre pod de test a pu résoudre le nom webapp-internal-service et atteindre l'un des 3 pods Nginx via l'IP stable du service.   
 
@@ -97,7 +106,7 @@ NodePort ouvre un port statique sur l'IP de chaque nœud du cluster.  
 
 Créez le fichier webapp-nodeport-service.yaml :
 
-YAML
+```YAML
 
 apiVersion: v1
 kind: Service
@@ -112,16 +121,19 @@ spec:
       port: 80
       targetPort: 80
       # nodePort: 30080 # Optionnel: vous pouvez spécifier un port, sinon Kubernetes en choisit un
+```
 Appliquez le manifeste :
 
-Bash
+```bash
 
 kubectl apply -f webapp-nodeport-service.yaml
+```
 Inspectez le Service :
 
-Bash
+```bash
 
 kubectl get service webapp-external-service
+```
 Résultat attendu :
 
 NAME                      TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
@@ -132,15 +144,18 @@ Vérification de l'accès externe :
 
 Obtenez l'adresse IP de votre nœud (si vous utilisez Minikube) :
 
-Bash
+```bash
 
 minikube ip
+```
 Utilisez curl ou votre navigateur pour accéder à l'application via l'IP du nœud et le NodePort :
 
-Bash
+```bash
 
 # Remplacez <minikube-ip> et <node-port> par les valeurs obtenues
 curl http://<minikube-ip>:<node-port>
+```
+
 Conclusion du Lab 2 : Le service NodePort est un moyen rapide d'exposer une application, mais il est généralement déconseillé en production car il expose un port sur chaque nœud et ne fournit pas de load balancing avancé.   
 
 ## Lab 3 : Le Service LoadBalancer - Exposition de Production
@@ -150,7 +165,7 @@ Note : Ce lab fonctionne mieux sur un vrai fournisseur cloud (AWS, GCP, Azure). 
 
 Créez le fichier webapp-loadbalancer-service.yaml :
 
-YAML
+```YAML
 
 apiVersion: v1
 kind: Service
@@ -164,23 +179,27 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+```
 Appliquez le manifeste :
 
-Bash
+```bash
 
 kubectl apply -f webapp-loadbalancer-service.yaml
+```
 Simulation avec Minikube :
 Pour que le LoadBalancer fonctionne sur Minikube, ouvrez un nouveau terminal et lancez la commande suivante. Laissez-la tourner en arrière-plan.
 
-Bash
+```bash
 
 minikube tunnel
 Inspectez le Service :
 Retournez à votre premier terminal et inspectez le service. Cela peut prendre une minute pour que l'IP externe soit assignée.
 
-Bash
+```bash
 
 kubectl get service webapp-prod-service
+
+```
 Résultat attendu (après un moment) :
 
 NAME                  TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
@@ -190,9 +209,10 @@ Grâce à minikube tunnel, une EXTERNAL-IP a été assignée. Sur un vrai cloud,
 Vérification de l'accès :
 Vous pouvez maintenant accéder à votre application directement via cette EXTERNAL-IP sur le port 80.
 
-Bash
+```bash
 
 curl http://<EXTERNAL-IP>
+```
 Conclusion du Lab 3 : Le service LoadBalancer est la solution robuste pour la production, car il s'intègre aux fournisseurs cloud pour créer un point d'entrée unique et scalable pour votre application.   
 
 ## Lab 4 : Le Service Headless - Découverte de Pods Individuels
@@ -200,7 +220,7 @@ Objectif : Découvrir un type de service spécial qui ne fait pas de load balanc
 
 Créez le fichier webapp-headless-service.yaml :
 
-YAML
+```YAML
 
 apiVersion: v1
 kind: Service
@@ -214,16 +234,20 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+
+```
 Appliquez le manifeste :
 
-Bash
+```bash
 
 kubectl apply -f webapp-headless-service.yaml
+```
 Inspectez le Service :
 
-Bash
+```bash
 
 kubectl get service webapp-headless
+```
 Résultat attendu :
 
 NAME              TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
@@ -233,9 +257,10 @@ Remarquez que le CLUSTER-IP est explicitement None. Ce service n'a pas d'IP virt
 Vérification de la découverte DNS :
 Nous allons à nouveau utiliser un pod de test pour voir comment le DNS fonctionne pour ce service.
 
-Bash
+```bash
 
 kubectl run -it --rm --image=dnsutils test-dns -- /bin/sh
+```
 
 # Une fois dans le shell, faites une requête DNS pour le nom du service
 nslookup webapp-headless
