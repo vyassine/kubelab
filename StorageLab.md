@@ -410,12 +410,12 @@ kubectl apply -f shared-pods.yaml
 ⸻
 
  Vérification
-	•	Connecte-toi au pod reader :
+Connecte-toi au pod reader :
 ```
 kubectl exec -it reader -n nfs-lab -- sh
 ```
 
-	•	Tu dois voir les dates s’écrire en direct par le pod writer dans /mnt/shared/date.log.
+Tu dois voir les dates s’écrire en direct par le pod writer dans /mnt/shared/date.log.
 
 ⸻
 
