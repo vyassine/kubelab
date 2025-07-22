@@ -568,12 +568,12 @@ minikube addons enable volumesnapshots
 kubectl get volumesnapshotclasses.snapshot.storage.k8s.io
 
 Si la commande échoue, tu peux les créer via :
-
+```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
 
-
+```
 
 ⸻
 
