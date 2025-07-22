@@ -11,7 +11,7 @@ Découvrir les volumes éphémères internes au pod, qui permettent à plusieurs
 kubectl apply -f Lab1-emptyDir.yaml
 
 Contenu du fichier YAML :
-
+```YAML
 apiVersion: v1
 kind: Pod
 metadata:
@@ -33,7 +33,7 @@ spec:
   volumes:
   - name: shared-vol
     emptyDir: {}
-
+```
 2. Vérification :
 
 kubectl exec shared-volume-pod -c reader -- cat /shared/data.txt
@@ -61,7 +61,7 @@ sudo chmod -R 777 /mnt/data/hostpath-vol
 kubectl apply -f Lab2-hostPath.yaml
 
 Contenu du fichier YAML :
-
+```YAML
 apiVersion: v1
 kind: Pod
 metadata:
@@ -79,7 +79,7 @@ spec:
     hostPath:
       path: /mnt/data/hostpath-vol
       type: Directory
-
+```
 3. Vérification :
 
 kubectl exec hostpath-pod -- cat /data/demo.txt
@@ -107,6 +107,7 @@ sudo chmod -R 777 /mnt/data/static-vol
 kubectl apply -f Lab3-pv-static.yaml
 
 Contenu :
+```YAML
 
 apiVersion: v1
 kind: PersistentVolume
@@ -120,11 +121,15 @@ spec:
   hostPath:
     path: /mnt/data/static-vol
 
+```
+
 3. Créer le PersistentVolumeClaim :
 
 kubectl apply -f Lab3-pvc-static.yaml
 
 Contenu :
+
+```YAML
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -138,12 +143,14 @@ spec:
       storage: 1Gi
   volumeName: static-pv
 
+```
+
 4. Déployer un pod qui utilise ce PVC :
 
 kubectl apply -f Lab3-pod-static.yaml
 
 Contenu :
-
+```YAML
 apiVersion: v1
 kind: Pod
 metadata:
@@ -160,7 +167,7 @@ spec:
   - name: vol
     persistentVolumeClaim:
       claimName: static-pvc
-
+```
 5. Vérification :
 
 kubectl exec pod-static-pv -- ls /data
@@ -189,7 +196,7 @@ Note : Minikube propose en général une classe standard avec le provisionneur k
 kubectl apply -f Lab4-pvc-dynamic.yaml
 
 Contenu :
-
+```YAML
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -201,13 +208,13 @@ spec:
     requests:
       storage: 500Mi
   storageClassName: standard
-
+```
 3. Créer un pod qui l’utilise :
 
 kubectl apply -f Lab4-pod-dynamic.yaml
 
 Contenu :
-
+```YAML
 apiVersion: v1
 kind: Pod
 metadata:
@@ -224,7 +231,7 @@ spec:
   - name: storage
     persistentVolumeClaim:
       claimName: dynamic-pvc
-
+```
 4. Vérification :
 
 kubectl get pvc
