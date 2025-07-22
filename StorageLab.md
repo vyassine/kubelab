@@ -546,3 +546,176 @@ kubectl delete namespace csi-lab
 ⸻
 
 
+⸻
+
+# Lab 8 — Utiliser VolumeSnapshot avec CSI
+
+## Objectif pédagogique
+
+Comprendre comment utiliser le mécanisme VolumeSnapshot pour créer une sauvegarde à chaud d’un PVC CSI, puis restaurer cette sauvegarde dans un nouveau volume.
+
+⸻
+## Prérequis
+	1.	CSI avec support des snapshots doit être activé.
+	•	Minikube le supporte via le provisionneur hostpath-csi :
+
+minikube addons enable csi-hostpath-driver
+minikube addons enable volumesnapshots
+
+
+	2.	Installer les CRD nécessaires (si non déjà présents) :
+
+kubectl get volumesnapshotclasses.snapshot.storage.k8s.io
+
+Si la commande échoue, tu peux les créer via :
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+
+
+
+⸻
+
+## Étape 1 : Créer le PVC avec des données
+
+Fichier pvc-source.yaml :
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: source-pvc
+  namespace: snapshot-lab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: csi-hostpath-sc
+  resources:
+    requests:
+      storage: 1Gi
+
+Fichier writer-pod.yaml :
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: writer
+  namespace: snapshot-lab
+spec:
+  containers:
+    - name: writer
+      image: busybox
+      command: ["/bin/sh", "-c"]
+      args: ["echo 'Kubernetes est génial !' > /data/test.txt && sleep 3600"]
+      volumeMounts:
+        - mountPath: /data
+          name: data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: source-pvc
+
+Déploie le tout :
+
+kubectl create namespace snapshot-lab
+kubectl apply -f pvc-source.yaml -n snapshot-lab
+kubectl apply -f writer-pod.yaml -n snapshot-lab
+
+
+⸻
+
+## Étape 2 : Créer un VolumeSnapshot
+
+Fichier snapshot.yaml :
+```YAML
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: source-snapshot
+  namespace: snapshot-lab
+spec:
+  volumeSnapshotClassName: csi-hostpath-snapclass
+  source:
+    persistentVolumeClaimName: source-pvc
+
+```
+⸻
+
+## Étape 3 : Créer un PVC à partir du snapshot
+
+Fichier pvc-from-snapshot.yaml :
+```YAML
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: restored-pvc
+  namespace: snapshot-lab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: csi-hostpath-sc
+  resources:
+    requests:
+      storage: 1Gi
+  dataSource:
+    name: source-snapshot
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+
+```
+⸻
+
+## Étape 4 : Lire les données restaurées
+
+Fichier reader-pod.yaml :
+```YAML
+apiVersion: v1
+kind: Pod
+metadata:
+  name: reader
+  namespace: snapshot-lab
+spec:
+  containers:
+    - name: reader
+      image: busybox
+      command: ["/bin/sh", "-c"]
+      args: ["cat /data/test.txt && sleep 3600"]
+      volumeMounts:
+        - mountPath: /data
+          name: data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: restored-pvc
+```
+
+⸻
+
+ Déploiement final
+```
+kubectl apply -f snapshot.yaml -n snapshot-lab
+kubectl wait --for=condition=ready volumesnapshot/source-snapshot -n snapshot-lab --timeout=60s
+kubectl apply -f pvc-from-snapshot.yaml -n snapshot-lab
+kubectl apply -f reader-pod.yaml -n snapshot-lab
+
+```
+⸻
+
+Vérification
+```
+kubectl exec -it reader -n snapshot-lab -- cat /data/test.txt
+```
+Tu devrais voir :
+
+Kubernetes est génial !
+
+
+⸻
+
+🧹 Nettoyage
+```
+kubectl delete ns snapshot-lab
+
+```
+
+
