@@ -299,23 +299,36 @@ spec:
       labels:
         app: nfs-server
     spec:
+      initContainers:
+        - name: init-create-export-dir
+          image: busybox
+          command: ["/bin/sh", "-c", "mkdir -p /export && chmod 777 /export && sleep 10"]
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /export  # Assurez-vous que ce répertoire existe dans le volume monté
       containers:
         - name: nfs-server
           image: itsthenetwork/nfs-server-alpine:12
+          env:
+            - name: SHARED_DIRECTORY
+              value: /export  # Répertoire à partager via NFS
           ports:
             - name: nfs
               containerPort: 2049
           securityContext:
             privileged: true
           args:
-            - /exports
+            - /exports  # L'argument pour démarrer NFS avec /exports
           volumeMounts:
             - name: nfs-volume
-              mountPath: /exports
+              mountPath: /export  # Assurez-vous que ce répertoire est monté dans le conteneur
       volumes:
         - name: nfs-volume
-          emptyDir: {}
-
+          emptyDir: {}  # Utilisation d'un volume temporaire pour le test
+#        - name: nfs-volume
+#          hostPath:
+#            path: /mnt/nfs-export  # Optionnel si tu veux utiliser un volume persistant
+#            type: DirectoryOrCreate
 ```
 ⸻
 
