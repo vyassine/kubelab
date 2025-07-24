@@ -27,7 +27,7 @@ spec:
         kind: K8sRequiredLabels
       validation:
         openAPIV3Schema:
-          type: object # <--- LIGNE MANQUANTE
+          type: object 
           properties:
             labels:
               type: array
