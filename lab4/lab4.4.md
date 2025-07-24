@@ -27,6 +27,7 @@ spec:
         kind: K8sRequiredLabels
       validation:
         openAPIV3Schema:
+          type: object # <--- LIGNE MANQUANTE
           properties:
             labels:
               type: array
@@ -36,6 +37,7 @@ spec:
     - target: admission.k8s.gatekeeper.sh
       rego: |
         package k8srequiredlabels
+
         violation[{"msg": msg, "details": {"missing_labels": missing}}] {
           provided := {label | input.review.object.metadata.labels[label]}
           required := {label | label := input.parameters.labels[_]}
