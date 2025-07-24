@@ -1,6 +1,3 @@
-Absolument. Voici le laboratoire complet, réorganisé étape par étape de manière très détaillée pour créer les permissions RBAC et le fichier `kubeconfig` associé.
-
------
 
 ### **Laboratoire : Créer un Accès Restreint avec RBAC et `kubeconfig`**
 
