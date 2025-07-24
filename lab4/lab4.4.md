@@ -2,6 +2,9 @@
 Objectif : Installer OPA Gatekeeper et créer une politique qui oblige tous les nouveaux Pods à avoir une étiquette owner.
 
 ## Étape 1 : Installer Gatekeeper
+
+https://github.com/open-policy-agent/gatekeeper/tree/master/demo/basic
+
 Cette commande déploie tous les composants de Gatekeeper dans le cluster.
 
 ```bash
