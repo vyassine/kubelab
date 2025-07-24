@@ -5,6 +5,9 @@ Objectif : Installer OPA Gatekeeper et créer une politique qui oblige tous les 
 
 https://github.com/open-policy-agent/gatekeeper/tree/master/demo/basic
 
+https://github.com/bikram20/opa-gatekeeper-examples/tree/master/templates
+
+
 Cette commande déploie tous les composants de Gatekeeper dans le cluster.
 
 ```bash
