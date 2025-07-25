@@ -1,6 +1,3 @@
-Absolument. Voici les trois laboratoires sur le placement des Pods, présentés de manière directe avec les étapes et les fichiers YAML, comme les labs précédents.
-
------
 
 ### **Lab 1 : Placement Simple avec `nodeSelector`**
 
