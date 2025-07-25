@@ -5,10 +5,10 @@
 
 #### Étape 1 : Étiqueter un Nœud
 
-1.  Choisissez un de vos workers (ex: `multi-noeud-m02`).
+1.  Choisissez un de vos workers (ex: `minikube-m02`).
 2.  Appliquez une étiquette personnalisée :
     ```bash
-    kubectl label nodes multi-noeud-m02 disktype=ssd
+    kubectl label nodes minikube-m02 disktype=ssd
     ```
 3.  Vérifiez que l'étiquette est bien présente avec `kubectl get nodes --show-labels`.
 
@@ -36,13 +36,13 @@
     ```bash
     kubectl get pods -o wide
     ```
-    **Observation :** Le Pod `nginx-selector` est obligatoirement placé sur le nœud étiqueté `multi-noeud-m02`.
+    **Observation :** Le Pod `nginx-selector` est obligatoirement placé sur le nœud étiqueté `minikube-m02`.
 
 #### Étape 4 : Nettoyage
 
 ```bash
 kubectl delete -f lab-nodeselector.yaml
-kubectl label nodes multi-noeud-m02 disktype-
+kubectl label nodes minikube-m02 disktype-
 ```
 
 -----
@@ -53,12 +53,12 @@ kubectl label nodes multi-noeud-m02 disktype-
 
 #### Étape 1 : Souiller (Taint) un Nœud
 
-1.  Choisissez un worker (ex: `multi-noeud-m02`).
+1.  Choisissez un worker (ex: `minikube-m02`).
 2.  Appliquez une Taint `NoSchedule` :
     ```bash
-    kubectl taint nodes multi-noeud-m02 special-workload=true:NoSchedule
+    kubectl taint nodes minikube-m02 special-workload=true:NoSchedule
     ```
-3.  Vérifiez la Taint avec `kubectl describe node multi-noeud-m02 | grep Taints`.
+3.  Vérifiez la Taint avec `kubectl describe node minikube-m02 | grep Taints`.
 
 #### Étape 2 : Déployer un Pod sans Tolérance
 
@@ -96,13 +96,13 @@ kubectl label nodes multi-noeud-m02 disktype-
         effect: "NoSchedule"
     ```
 2.  Appliquez-le (`kubectl apply -f pod-avec-toleration.yaml`) et observez son placement (`kubectl get pods -o wide`).
-    **Observation :** Ce Pod peut maintenant être placé sur le nœud souillé `multi-noeud-m02`.
+    **Observation :** Ce Pod peut maintenant être placé sur le nœud souillé `minikube-m02`.
 
 #### Étape 4 : Nettoyage
 
 ```bash
 kubectl delete pod nginx-standard nginx-special
-kubectl taint nodes multi-noeud-m02 special-workload=true:NoSchedule-
+kubectl taint nodes minikube-m02 special-workload=true:NoSchedule-
 ```
 
 -----
